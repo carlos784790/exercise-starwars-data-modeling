@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 sqlalchemy = "*"
 eralchemy2 = "*"
+pygraphviz = "*"
+sqlalchemy-schemadisplay = "*"
 
 [requires]
 python_version = "3.10"

@@ -1,64 +1,63 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table
-from sqlalchemy.orm import declarative_base, relationship
+import os
+import sys
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import create_engine
+from eralchemy2 import render_er
 
 Base = declarative_base()
 
-# Association table for User's favorite planets
-user_favorite_planets_association = Table(
-    'user_favorite_planets', Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id')),
-    Column('planet_id', Integer, ForeignKey('planets.id'))
-)
+class Favorites(Base):
+    __tablename__ = 'favorites'  # Correct the spelling of __tablename__
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("user.id"))  # Correct the column name to user_id
+    name = Column(String(250), unique=True, nullable=False)
 
-# Association table for User's favorite characters
-user_favorite_characters_association = Table(
-    'user_favorite_characters', Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id')),
-    Column('character_id', Integer, ForeignKey('characters.id'))
-)
+    def to_dict(self):
+        return {}
 
 class User(Base):
-    __tablename__ = 'users'
-
+    __tablename__ = 'user'  # Correct the spelling of __tablename__
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)
+    username = Column(String(250), unique=True, nullable=False)
+    password = Column(String(250), nullable=False)
 
-    favorite_planets = relationship("Planet", secondary=user_favorite_planets_association, back_populates="fans")
-    favorite_characters = relationship("Character", secondary=user_favorite_characters_association, back_populates="fans")
+    # Correct the relationships
+    favorite_planets = relationship('Planets', backref="user", uselist=False)
+    favorite_characters = relationship('Character', backref="user", uselist=False)
+    favorite_vehicles = relationship('Vehicles', backref="user", uselist=False)
 
-class Planet(Base):
-    __tablename__ = 'planets'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    climate = Column(String)
-    terrain = Column(String)
-    
-    fans = relationship("User", secondary=user_favorite_planets_association, back_populates="favorite_planets")
+    def to_dict(self):
+        return {}
 
 class Character(Base):
-    __tablename__ = 'characters'
-
+    __tablename__ = 'character'  # Correct the spelling of __tablename__
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    species = Column(String)
-    gender = Column(String)
-    
-    fans = relationship("User", secondary=user_favorite_characters_association, back_populates="favorite_characters")
+    name = Column(String(250), unique=True, nullable=False)
+    birth_year = Column(Integer, nullable=False, unique=False)
+    eye_color = Column(String, unique=False, nullable=False)
+    favorite_id = Column(Integer, ForeignKey("favorites.id"))
 
-class Favorite(Base):
-    __tablename__ = 'favorites'
+    def to_dict(self):
+        return {}
 
+class Planets(Base):
+    __tablename__ = 'planets'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship("User", back_populates="favorites")
-    # Add other properties specific to the favorites table
+    name = Column(String(100), unique=True, nullable=False)
+    favorite_id = Column(Integer, ForeignKey("favorites.id"))
 
-# Add any other necessary models and relationships
+    def to_dict(self):
+        return {}
 
-# Create an SQLite database in memory for demonstration purposes
-engine = create_engine('sqlite:///:memory:')
+class Vehicles(Base):
+    __tablename__ = 'vehicles'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    favorite_id = Column(Integer, ForeignKey("favorites.id"))
 
-# Create the tables
-Base.metadata.create_all(engine)
+    def to_dict(self):
+        return {}
+
+# Draw from SQLAlchemy base
+render_er(Base, 'diagram.png')
